@@ -27,10 +27,9 @@
 {
     float backWidth = CGRectGetHeight(view.frame);
     float backHeight = CGRectGetWidth(view.frame);
-    dispatch_sync(mAppDelegate.tempQueue, ^{
         @autoreleasepool {
-            UIGraphicsBeginImageContextWithOptions(CGSizeMake(width, width), YES, scale);
             CGContextRef context = UIGraphicsGetCurrentContext();
+            CGContextSaveGState(context);
             CGContextSetAllowsAntialiasing(context, true);
             CGContextSetShouldAntialias(context, true);
             CGContextTranslateCTM(context, view.center.x, view.center.y);
@@ -44,8 +43,8 @@
             
             
             UIImage *comicImage = UIGraphicsGetImageFromCurrentImageContext();
-            UIGraphicsEndImageContext();
-            
+            CGContextRestoreGState(context);
+       
             if (!isSquare) {
                 WeFuncComicView *comicView = (WeFuncComicView *)view;
                 float rate = 414.0/CGRectGetWidth(comicView.backScrollView.frame) ;
@@ -67,8 +66,6 @@
                 }
             }
         }
-        
-    });
 }
 
 #pragma mark - init
@@ -383,6 +380,7 @@
     WePhotoPickManagerGetImageBlock imageBlock = ^(UIImage *image)
     {
         if (imageArray.count == ws.comicViewArray.count) {
+            UIGraphicsEndImageContext();
             double delayInSeconds = 1.0;
             dispatch_time_t timeQueue = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds *NSEC_PER_SEC));
                 dispatch_after(timeQueue, dispatch_get_main_queue(), ^{
@@ -420,6 +418,7 @@
         }
     };
     
+    UIGraphicsBeginImageContextWithOptions(CGSizeMake(414.0, 414.0), YES, 3.0);
     
     for (int i = 0; i < self.comicViewArray.count; i++) {
         WeFuncComicView *comicView = [self.comicViewArray objectAtIndex:i];
